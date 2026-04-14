@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { createEvent, getUsers } from "../services/dashboardService";
+import { createEvent, updateEvent, getUsers } from "../services/dashboardService";
 
-function CreateEventForm({ onSuccess }) {
+function CreateEventForm({ onSuccess, editingEvent, onCancelEdit }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [eventDate, setEventDate] = useState("");
@@ -17,53 +17,140 @@ function CreateEventForm({ onSuccess }) {
       try {
         const data = await getUsers();
         setUsers(data);
-        if (data.length > 0) {
-          setCreatedByUserId(data[0].id);
+        setError("");
+
+        if (!editingEvent && data.length > 0) {
+          setCreatedByUserId(String(data[0].id));
         }
       } catch (err) {
         setError("Failed to load users.");
-        console.error(err);
+        console.error("Load users error:", err);
       }
     };
 
     fetchUsers();
-  }, []);
+  }, [editingEvent]);
+
+  useEffect(() => {
+    if (editingEvent) {
+      setTitle(editingEvent.title || "");
+      setDescription(editingEvent.description || "");
+      setLocation(editingEvent.location || "");
+      setCreatedByUserId(
+        editingEvent.createdBy?.id ? String(editingEvent.createdBy.id) : ""
+      );
+
+      if (editingEvent.eventDate) {
+        const eventDateObj = new Date(editingEvent.eventDate);
+
+        const year = eventDateObj.getFullYear();
+        const month = String(eventDateObj.getMonth() + 1).padStart(2, "0");
+        const day = String(eventDateObj.getDate()).padStart(2, "0");
+        const hours = String(eventDateObj.getHours()).padStart(2, "0");
+        const minutes = String(eventDateObj.getMinutes()).padStart(2, "0");
+
+        setEventDate(`${year}-${month}-${day}`);
+        setEventTime(`${hours}:${minutes}`);
+      } else {
+        setEventDate("");
+        setEventTime("");
+      }
+
+      setMessage("");
+      setError("");
+    }
+  }, [editingEvent]);
+
+  const resetForm = () => {
+    setTitle("");
+    setDescription("");
+    setEventDate("");
+    setEventTime("");
+    setLocation("");
+    setMessage("");
+    setError("");
+
+    if (users.length > 0) {
+      setCreatedByUserId(String(users[0].id));
+    } else {
+      setCreatedByUserId("");
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
     setError("");
 
+    if (!title.trim()) {
+      setError("Event title is required.");
+      return;
+    }
+
+    if (!eventDate) {
+      setError("Event date is required.");
+      return;
+    }
+
+    if (!eventTime) {
+      setError("Event time is required.");
+      return;
+    }
+
+    if (!createdByUserId) {
+      setError("Please select a user.");
+      return;
+    }
+
+    const formattedDateTime = `${eventDate}T${eventTime}:00`;
+
+    const eventData = {
+      title,
+      description,
+      eventDate: formattedDateTime,
+      location,
+      createdByUserId: Number(createdByUserId),
+    };
+
     try {
-      const formattedDateTime = `${eventDate}T${eventTime}:00`;
+      if (editingEvent) {
+        await updateEvent(editingEvent.id, eventData);
+        setMessage("Event updated successfully.");
+      } else {
+        await createEvent(eventData);
+        setMessage("Event created successfully.");
+      }
 
-      await createEvent({
-        title,
-        description,
-        eventDate: formattedDateTime,
-        location,
-        createdByUserId: Number(createdByUserId),
-      });
-
-      setMessage("Event created successfully.");
-      setTitle("");
-      setDescription("");
-      setEventDate("");
-      setEventTime("");
-      setLocation("");
+      resetForm();
 
       if (onSuccess) {
         onSuccess();
       }
     } catch (err) {
-      setError("Failed to create event.");
-      console.error(err);
+      console.error("Event submit error:", err);
+      console.error("Response data:", err.response?.data);
+      console.error("Status:", err.response?.status);
+      console.error("Request URL:", err.config?.url);
+
+      setError(
+        err.response?.data?.message ||
+        `Failed to ${editingEvent ? "update" : "create"} event.`
+      );
+    }
+  };
+
+  const handleCancelEdit = () => {
+    resetForm();
+    if (onCancelEdit) {
+      onCancelEdit();
     }
   };
 
   return (
     <div className="dashboard-section">
-      <h2>Create Event</h2>
+      <h2>
+        {editingEvent ? `Editing: ${editingEvent.title}` : "Create Event"}
+      </h2>
 
       <form onSubmit={handleSubmit} className="form-layout">
         <label>
@@ -119,7 +206,11 @@ function CreateEventForm({ onSuccess }) {
             value={createdByUserId}
             onChange={(e) => setCreatedByUserId(e.target.value)}
             required
+            disabled={users.length === 0}
           >
+            <option value="">
+              {users.length === 0 ? "No users available" : "Select a user"}
+            </option>
             {users.map((user) => (
               <option key={user.id} value={user.id}>
                 {user.firstName} {user.lastName}
@@ -128,7 +219,27 @@ function CreateEventForm({ onSuccess }) {
           </select>
         </label>
 
-        <button type="submit">Create Event</button>
+        <button type="submit" disabled={users.length === 0}>
+          {editingEvent ? "Update Event" : "Create Event"}
+        </button>
+
+        {editingEvent && (
+          <button
+            type="button"
+            onClick={handleCancelEdit}
+            style={{
+              marginTop: "10px",
+              backgroundColor: "#6b7280",
+              color: "white",
+              border: "none",
+              padding: "8px 12px",
+              borderRadius: "6px",
+              cursor: "pointer"
+            }}
+          >
+            Cancel Edit
+          </button>
+        )}
       </form>
 
       {message && <p className="success-message">{message}</p>}

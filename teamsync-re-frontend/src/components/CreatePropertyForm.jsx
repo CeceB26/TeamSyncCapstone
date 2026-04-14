@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { createProperty, getUsers } from "../services/dashboardService";
+import { createProperty, updateProperty, getUsers } from "../services/dashboardService";
 
-function CreatePropertyForm({ onSuccess }) {
+function CreatePropertyForm({ onSuccess, editingProperty, onCancelEdit }) {
   const [users, setUsers] = useState([]);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -25,68 +25,152 @@ function CreatePropertyForm({ onSuccess }) {
       try {
         const data = await getUsers();
         setUsers(data);
-        if (data.length > 0) setUserId(data[0].id);
+        setError("");
+
+        if (!editingProperty) {
+          if (data.length > 0) {
+            setUserId(String(data[0].id));
+          } else {
+            setUserId("");
+            setError("No users found. Please create a user before creating a property.");
+          }
+        }
       } catch (err) {
         setError("Failed to load users.");
-        console.error(err);
+        console.error("Load users error:", err);
       }
     };
 
     fetchUsers();
-  }, []);
+  }, [editingProperty]);
+
+  useEffect(() => {
+    if (editingProperty) {
+      setRepresentation(editingProperty.representation || "");
+      setListingDate(editingProperty.listingDate || "");
+      setClosingDate(editingProperty.closingDate || "");
+      setAddress(editingProperty.address || "");
+      setCity(editingProperty.city || "");
+      setState(editingProperty.state || "");
+      setZipCode(editingProperty.zipCode || "");
+      setMls(editingProperty.mls || "");
+      setListPrice(
+        editingProperty.listPrice !== null && editingProperty.listPrice !== undefined
+          ? String(editingProperty.listPrice)
+          : ""
+      );
+      setSalePrice(
+        editingProperty.salePrice !== null && editingProperty.salePrice !== undefined
+          ? String(editingProperty.salePrice)
+          : ""
+      );
+      setStatus(editingProperty.status || "ACTIVE");
+      setClientName(editingProperty.clientName || "");
+      setUserId(editingProperty.user?.id ? String(editingProperty.user.id) : "");
+      setMessage("");
+      setError("");
+    }
+  }, [editingProperty]);
+
+  const resetForm = () => {
+    setRepresentation("");
+    setListingDate("");
+    setClosingDate("");
+    setAddress("");
+    setCity("");
+    setState("");
+    setZipCode("");
+    setMls("");
+    setListPrice("");
+    setSalePrice("");
+    setStatus("ACTIVE");
+    setClientName("");
+    setMessage("");
+    setError("");
+
+    if (users.length > 0) {
+      setUserId(String(users[0].id));
+    } else {
+      setUserId("");
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
     setError("");
 
+    if (users.length === 0 || !userId) {
+      setError("Please create or select a user before creating or updating a property.");
+      return;
+    }
+
+    if (!listPrice || Number(listPrice) <= 0) {
+      setError("List price must be greater than 0.");
+      return;
+    }
+
+    const propertyData = {
+      representation,
+      listingDate,
+      closingDate,
+      address,
+      city,
+      state,
+      zipCode,
+      mls,
+      listPrice: Number(listPrice),
+      salePrice: salePrice ? Number(salePrice) : null,
+      status,
+      clientName,
+      userId: Number(userId),
+    };
+
     try {
-      await createProperty({
-        representation,
-        listingDate,
-        closingDate,
-        address,
-        city,
-        state,
-        zipCode,
-        mls,
-        listPrice: Number(listPrice),
-        salePrice: salePrice ? Number(salePrice) : null,
-        status,
-        clientName,
-        userId: Number(userId),
-      });
+      if (editingProperty) {
+        await updateProperty(editingProperty.id, propertyData);
+        setMessage("Property updated successfully.");
+      } else {
+        await createProperty(propertyData);
+        setMessage("Property created successfully.");
+      }
 
-      setMessage("Property created successfully.");
+      resetForm();
 
-      // reset form
-      setRepresentation("");
-      setListingDate("");
-      setClosingDate("");
-      setAddress("");
-      setCity("");
-      setState("");
-      setZipCode("");
-      setMls("");
-      setListPrice("");
-      setSalePrice("");
-      setStatus("ACTIVE");
-      setClientName("");
-
-      if (onSuccess) onSuccess();
-
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (err) {
-      setError("Failed to create property.");
-      console.error(err);
+      console.error("Property submit error:", err);
+      console.error("Response data:", err.response?.data);
+      console.error("Status:", err.response?.status);
+      console.error("Request URL:", err.config?.url);
+
+      setError(
+        err.response?.data?.message ||
+          `Failed to ${editingProperty ? "update" : "create"} property. Status: ${
+            err.response?.status || "unknown"
+          }`
+      );
+    }
+  };
+
+  const handleCancelEdit = () => {
+    resetForm();
+    if (onCancelEdit) {
+      onCancelEdit();
     }
   };
 
   return (
     <div className="dashboard-section">
-      <h2>Create Property</h2>
+      <h2>
+        {editingProperty
+          ? `Editing: ${editingProperty.address}`
+          : "Create Property"}
+      </h2>
 
       <form onSubmit={handleSubmit} className="form-layout">
-
         <label>
           Representation
           <select
@@ -140,17 +224,29 @@ function CreatePropertyForm({ onSuccess }) {
 
         <label>
           City
-          <input value={city} onChange={(e) => setCity(e.target.value)} />
+          <input
+            type="text"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+          />
         </label>
 
         <label>
           State
-          <input value={state} onChange={(e) => setState(e.target.value)} />
+          <input
+            type="text"
+            value={state}
+            onChange={(e) => setState(e.target.value)}
+          />
         </label>
 
         <label>
           Zip Code
-          <input value={zipCode} onChange={(e) => setZipCode(e.target.value)} />
+          <input
+            type="text"
+            value={zipCode}
+            onChange={(e) => setZipCode(e.target.value)}
+          />
         </label>
 
         <label>
@@ -185,6 +281,7 @@ function CreatePropertyForm({ onSuccess }) {
         <label>
           Client Name
           <input
+            type="text"
             value={clientName}
             onChange={(e) => setClientName(e.target.value)}
           />
@@ -196,7 +293,11 @@ function CreatePropertyForm({ onSuccess }) {
             value={userId}
             onChange={(e) => setUserId(e.target.value)}
             required
+            disabled={users.length === 0}
           >
+            <option value="">
+              {users.length === 0 ? "No users available" : "Select a user"}
+            </option>
             {users.map((user) => (
               <option key={user.id} value={user.id}>
                 {user.firstName} {user.lastName}
@@ -205,7 +306,27 @@ function CreatePropertyForm({ onSuccess }) {
           </select>
         </label>
 
-        <button type="submit">Create Property</button>
+        <button type="submit" disabled={users.length === 0}>
+          {editingProperty ? "Update Property" : "Create Property"}
+        </button>
+
+        {editingProperty && (
+          <button
+            type="button"
+            onClick={handleCancelEdit}
+            style={{
+              marginTop: "10px",
+              backgroundColor: "#6b7280",
+              color: "white",
+              border: "none",
+              padding: "8px 12px",
+              borderRadius: "6px",
+              cursor: "pointer"
+            }}
+          >
+            Cancel Edit
+          </button>
+        )}
       </form>
 
       {message && <p className="success-message">{message}</p>}

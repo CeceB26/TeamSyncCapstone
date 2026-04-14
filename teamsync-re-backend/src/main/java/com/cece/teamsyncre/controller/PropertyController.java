@@ -1,14 +1,12 @@
 package com.cece.teamsyncre.controller;
 
 import com.cece.teamsyncre.dto.CreatePropertyRequest;
+import com.cece.teamsyncre.dto.PropertyResponseDTO;
 import com.cece.teamsyncre.entity.Property;
-import com.cece.teamsyncre.entity.User;
-import com.cece.teamsyncre.repository.PropertyRepository;
-import com.cece.teamsyncre.repository.UserRepository;
+import com.cece.teamsyncre.service.PropertyService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @CrossOrigin(origins = "http://localhost:5173")
@@ -16,19 +14,14 @@ import java.util.List;
 @RequestMapping("/api/properties")
 public class PropertyController {
 
-    private final PropertyRepository propertyRepository;
-    private final UserRepository userRepository;
+    private final PropertyService propertyService;
 
-    public PropertyController(PropertyRepository propertyRepository, UserRepository userRepository) {
-        this.propertyRepository = propertyRepository;
-        this.userRepository = userRepository;
+    public PropertyController(PropertyService propertyService) {
+        this.propertyService = propertyService;
     }
 
     @PostMapping
     public Property createProperty(@Valid @RequestBody CreatePropertyRequest request) {
-        User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + request.getUserId()));
-
         Property property = Property.builder()
                 .representation(request.getRepresentation())
                 .listingDate(request.getListingDate())
@@ -42,20 +35,26 @@ public class PropertyController {
                 .salePrice(request.getSalePrice())
                 .status(request.getStatus())
                 .clientName(request.getClientName())
-                .createdAt(LocalDateTime.now())
-                .user(user)
                 .build();
 
-        return propertyRepository.save(property);
+        return propertyService.createProperty(property, request.getUserId());
     }
 
     @GetMapping
-    public List<Property> getAllProperties() {
-        return propertyRepository.findAll();
+    public List<PropertyResponseDTO> getAllProperties() {
+        return propertyService.getAllProperties();
+    }
+
+    @PutMapping("/{id}")
+    public PropertyResponseDTO updateProperty(
+            @PathVariable Long id,
+            @Valid @RequestBody CreatePropertyRequest request
+    ) {
+        return propertyService.updateProperty(id, request);
     }
 
     @DeleteMapping("/{id}")
     public void deleteProperty(@PathVariable Long id) {
-        propertyRepository.deleteById(id);
+        propertyService.deleteProperty(id);
     }
 }

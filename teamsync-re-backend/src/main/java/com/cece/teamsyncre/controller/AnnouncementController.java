@@ -1,10 +1,9 @@
 package com.cece.teamsyncre.controller;
 
+import com.cece.teamsyncre.dto.AnnouncementResponseDTO;
 import com.cece.teamsyncre.dto.CreateAnnouncementRequest;
 import com.cece.teamsyncre.entity.Announcement;
-import com.cece.teamsyncre.entity.User;
-import com.cece.teamsyncre.repository.AnnouncementRepository;
-import com.cece.teamsyncre.repository.UserRepository;
+import com.cece.teamsyncre.service.AnnouncementService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,31 +15,42 @@ import java.util.List;
 @RequestMapping("/api/announcements")
 public class AnnouncementController {
 
-    private final AnnouncementRepository announcementRepository;
-    private final UserRepository userRepository;
+    private final AnnouncementService announcementService;
 
-    public AnnouncementController(AnnouncementRepository announcementRepository, UserRepository userRepository) {
-        this.announcementRepository = announcementRepository;
-        this.userRepository = userRepository;
+    public AnnouncementController(AnnouncementService announcementService) {
+        this.announcementService = announcementService;
     }
 
     @PostMapping
     public Announcement createAnnouncement(@Valid @RequestBody CreateAnnouncementRequest request) {
-        User createdBy = userRepository.findById(request.getCreatedByUserId())
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + request.getCreatedByUserId()));
 
         Announcement announcement = Announcement.builder()
                 .title(request.getTitle())
                 .content(request.getContent())
                 .createdAt(LocalDateTime.now())
-                .createdBy(createdBy)
                 .build();
 
-        return announcementRepository.save(announcement);
+        return announcementService.createAnnouncement(
+                announcement,
+                request.getCreatedByUserId()
+        );
     }
 
     @GetMapping
-    public List<Announcement> getAllAnnouncements() {
-        return announcementRepository.findAll();
+    public List<AnnouncementResponseDTO> getAllAnnouncements() {
+        return announcementService.getAllAnnouncements();
+    }
+
+    @PutMapping("/{id}")
+    public AnnouncementResponseDTO updateAnnouncement(
+            @PathVariable Long id,
+            @Valid @RequestBody CreateAnnouncementRequest request
+    ) {
+        return announcementService.updateAnnouncement(id, request);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteAnnouncement(@PathVariable Long id) {
+        announcementService.deleteAnnouncement(id);
     }
 }

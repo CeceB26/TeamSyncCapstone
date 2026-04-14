@@ -1,0 +1,25 @@
+What's Strong
+
+- Clean naming conventions across Java and React: classes, methods, and files are well-named
+- DTO pattern is used correctly for request objects
+- Entities are well-structured with proper JPA annotations, @ManyToOne relationships, and enum types
+- Lombok usage is appropriate and consistent
+- React component organization is logical - pages, components, services are separated
+- Builder pattern on DTOs and entities
+- Repository layer has useful custom queries (findByUser, findByEmail)
+
+What needs work
+
+1. Extract service layer - create @Service classes between controllers and repositories. Controller calls services. Services calls repository.
+
+2. Add BCrypt password hashing and implement real JWT authentication
+
+3. Add a global exception handler (@ControllerAdvice) - You can see example of this from our cardealership example.
+
+4. Fix the useEffect dependency bug in UserDashboard - In UserDashboard.jsx, the useEffect that fetches user data doesn't include userId in its dependency array, so changing the user dropdown does nothing.
+
+5. Centralize CORS config (currently in every controller) and use .env for API URLs
+
+6. Add basic unit tests for services and integration tests for controllers
+
+7. Add pagination to list endpoints.

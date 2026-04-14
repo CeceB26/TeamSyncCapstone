@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { getAdminSummary } from "../services/dashboardService";
 import SummaryCard from "../components/SummaryCard";
-import CreateAnnouncementForm from "../components/CreateAnnouncementForm";
-import CreateGoalForm from "../components/CreateGoalForm";
-import CreateEventForm from "../components/CreateEventForm";
-import CreateCommissionForm from "../components/CreateCommissionForm";
-import CreatePropertyForm from "../components/CreatePropertyForm";
+import EventManagementPanel from "../components/EventManagementPanel";
+import CommissionManagementPanel from "../components/CommissionManagementPanel";
+import AnnouncementManagementPanel from "../components/AnnouncementManagementPanel";
+import PropertyManagementPanel from "../components/PropertyManagementPanel";
+import GoalManagementPanel from "../components/GoalManagementPanel";
+import CollapsiblePanel from "../components/CollapsiblePanel";
 
 function AdminDashboard() {
   const [summary, setSummary] = useState(null);
@@ -16,12 +17,17 @@ function AdminDashboard() {
     try {
       const data = await getAdminSummary();
       setSummary(data);
+      setError("");
     } catch (err) {
       setError("Failed to load admin dashboard data.");
       console.error(err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRefresh = () => {
+    fetchSummary();
   };
 
   useEffect(() => {
@@ -43,14 +49,25 @@ function AdminDashboard() {
         <SummaryCard title="Total Commissions" value={summary.totalCommissions} />
       </div>
 
-   <h2 style={{ marginTop: "40px" }}>Admin Actions</h2>
-      <div className="form-grid">
-      <CreateAnnouncementForm onSuccess={fetchSummary} />
-      <CreateGoalForm onSuccess={fetchSummary} />
-      <CreateEventForm onSuccess={fetchSummary} />
-      <CreateCommissionForm onSuccess={fetchSummary} />
-      <CreatePropertyForm onSuccess={fetchSummary} />
-     </div>
+      <CollapsiblePanel title="Announcement Management" defaultOpen={true}>
+        <AnnouncementManagementPanel onRefresh={handleRefresh} />
+      </CollapsiblePanel>
+
+      <CollapsiblePanel title="Goal Management">
+        <GoalManagementPanel onRefresh={handleRefresh} />
+      </CollapsiblePanel>
+
+      <CollapsiblePanel title="Event Management">
+        <EventManagementPanel onRefresh={handleRefresh} />
+      </CollapsiblePanel>
+
+      <CollapsiblePanel title="Commission Management">
+        <CommissionManagementPanel onRefresh={handleRefresh} />
+      </CollapsiblePanel>
+
+      <CollapsiblePanel title="Property Management">
+        <PropertyManagementPanel onRefresh={handleRefresh} />
+      </CollapsiblePanel>
     </div>
   );
 }

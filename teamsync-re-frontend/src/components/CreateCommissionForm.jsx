@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
-import { createCommission, getUsers } from "../services/dashboardService";
+import {
+  createCommission,
+  updateCommission,
+  getUsers
+} from "../services/dashboardService";
 
-function CreateCommissionForm({ onSuccess }) {
+function CreateCommissionForm({ onSuccess, editingCommission, onCancelEdit }) {
   const [amount, setAmount] = useState("");
   const [transactionName, setTransactionName] = useState("");
   const [closingDate, setClosingDate] = useState("");
@@ -15,48 +19,117 @@ function CreateCommissionForm({ onSuccess }) {
       try {
         const data = await getUsers();
         setUsers(data);
-        if (data.length > 0) {
-          setUserId(data[0].id);
+        setError("");
+
+        if (!editingCommission && data.length > 0) {
+          setUserId(String(data[0].id));
         }
       } catch (err) {
         setError("Failed to load users.");
-        console.error(err);
+        console.error("Load users error:", err);
       }
     };
 
     fetchUsers();
-  }, []);
+  }, [editingCommission]);
+
+  useEffect(() => {
+    if (editingCommission) {
+      setAmount(
+        editingCommission.amount !== null && editingCommission.amount !== undefined
+          ? String(editingCommission.amount)
+          : ""
+      );
+      setTransactionName(editingCommission.transactionName || "");
+      setClosingDate(editingCommission.closingDate || "");
+      setUserId(editingCommission.user?.id ? String(editingCommission.user.id) : "");
+      setMessage("");
+      setError("");
+    }
+  }, [editingCommission]);
+
+  const resetForm = () => {
+    setAmount("");
+    setTransactionName("");
+    setClosingDate("");
+    setMessage("");
+    setError("");
+
+    if (users.length > 0) {
+      setUserId(String(users[0].id));
+    } else {
+      setUserId("");
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
     setError("");
 
-    try {
-      await createCommission({
-        amount: Number(amount),
-        transactionName,
-        closingDate,
-        userId: Number(userId),
-      });
+    if (amount === "" || Number(amount) < 0) {
+      setError("Amount must be 0 or greater.");
+      return;
+    }
 
-      setMessage("Commission created successfully.");
-      setAmount("");
-      setTransactionName("");
-      setClosingDate("");
+    if (!transactionName.trim()) {
+      setError("Transaction name is required.");
+      return;
+    }
+
+    if (!userId) {
+      setError("Please select a user.");
+      return;
+    }
+
+    const commissionData = {
+      amount: Number(amount),
+      transactionName,
+      closingDate,
+      userId: Number(userId),
+    };
+
+    try {
+      if (editingCommission) {
+        await updateCommission(editingCommission.id, commissionData);
+        setMessage("Commission updated successfully.");
+      } else {
+        await createCommission(commissionData);
+        setMessage("Commission created successfully.");
+      }
+
+      resetForm();
 
       if (onSuccess) {
         onSuccess();
       }
     } catch (err) {
-      setError("Failed to create commission.");
-      console.error(err);
+      console.error("Commission submit error:", err);
+      console.error("Response data:", err.response?.data);
+      console.error("Status:", err.response?.status);
+      console.error("Request URL:", err.config?.url);
+
+      setError(
+        err.response?.data?.message ||
+        `Failed to ${editingCommission ? "update" : "create"} commission.`
+      );
+    }
+  };
+
+  const handleCancelEdit = () => {
+    resetForm();
+    if (onCancelEdit) {
+      onCancelEdit();
     }
   };
 
   return (
     <div className="dashboard-section">
-      <h2>Create Commission</h2>
+      <h2>
+        {editingCommission
+          ? `Editing: ${editingCommission.transactionName}`
+          : "Create Commission"}
+      </h2>
 
       <form onSubmit={handleSubmit} className="form-layout">
         <label>
@@ -91,7 +164,15 @@ function CreateCommissionForm({ onSuccess }) {
 
         <label>
           Assigned User
-          <select value={userId} onChange={(e) => setUserId(e.target.value)} required>
+          <select
+            value={userId}
+            onChange={(e) => setUserId(e.target.value)}
+            required
+            disabled={users.length === 0}
+          >
+            <option value="">
+              {users.length === 0 ? "No users available" : "Select a user"}
+            </option>
             {users.map((user) => (
               <option key={user.id} value={user.id}>
                 {user.firstName} {user.lastName}
@@ -100,7 +181,27 @@ function CreateCommissionForm({ onSuccess }) {
           </select>
         </label>
 
-        <button type="submit">Create Commission</button>
+        <button type="submit" disabled={users.length === 0}>
+          {editingCommission ? "Update Commission" : "Create Commission"}
+        </button>
+
+        {editingCommission && (
+          <button
+            type="button"
+            onClick={handleCancelEdit}
+            style={{
+              marginTop: "10px",
+              backgroundColor: "#6b7280",
+              color: "white",
+              border: "none",
+              padding: "8px 12px",
+              borderRadius: "6px",
+              cursor: "pointer"
+            }}
+          >
+            Cancel Edit
+          </button>
+        )}
       </form>
 
       {message && <p className="success-message">{message}</p>}

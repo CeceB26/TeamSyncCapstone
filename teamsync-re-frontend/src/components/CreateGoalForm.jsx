@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { createGoal, getUsers } from "../services/dashboardService";
+import { createGoal, updateGoal, getUsers } from "../services/dashboardService";
 
-function CreateGoalForm({ onSuccess }) {
+function CreateGoalForm({ onSuccess, editingGoal, onCancelEdit }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [targetValue, setTargetValue] = useState("");
@@ -18,8 +18,10 @@ function CreateGoalForm({ onSuccess }) {
       try {
         const data = await getUsers();
         setUsers(data);
-        if (data.length > 0) {
-          setUserId(data[0].id);
+        setError("");
+
+        if (!editingGoal && data.length > 0) {
+          setUserId(String(data[0].id));
         }
       } catch (err) {
         setError("Failed to load users.");
@@ -28,44 +30,117 @@ function CreateGoalForm({ onSuccess }) {
     };
 
     fetchUsers();
-  }, []);
+  }, [editingGoal]);
+
+  useEffect(() => {
+    if (editingGoal) {
+      setTitle(editingGoal.title || "");
+      setDescription(editingGoal.description || "");
+      setTargetValue(
+        editingGoal.targetValue !== null && editingGoal.targetValue !== undefined
+          ? String(editingGoal.targetValue)
+          : ""
+      );
+      setCurrentValue(
+        editingGoal.currentValue !== null && editingGoal.currentValue !== undefined
+          ? String(editingGoal.currentValue)
+          : ""
+      );
+      setDueDate(editingGoal.dueDate || "");
+      setStatus(editingGoal.status || "NOT_STARTED");
+      setUserId(editingGoal.user?.id ? String(editingGoal.user.id) : "");
+      setMessage("");
+      setError("");
+    }
+  }, [editingGoal]);
+
+  const resetForm = () => {
+    setTitle("");
+    setDescription("");
+    setTargetValue("");
+    setCurrentValue("");
+    setDueDate("");
+    setStatus("NOT_STARTED");
+    setMessage("");
+    setError("");
+
+    if (users.length > 0) {
+      setUserId(String(users[0].id));
+    } else {
+      setUserId("");
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
     setError("");
 
-    try {
-      await createGoal({
-        title,
-        description,
-        targetValue: Number(targetValue),
-        currentValue: Number(currentValue),
-        dueDate,
-        status,
-        userId: Number(userId),
-      });
+    if (!title.trim()) {
+      setError("Goal title is required.");
+      return;
+    }
 
-      setMessage("Goal created successfully.");
-      setTitle("");
-      setDescription("");
-      setTargetValue("");
-      setCurrentValue("");
-      setDueDate("");
-      setStatus("NOT_STARTED");
+    if (targetValue === "" || Number(targetValue) < 0) {
+      setError("Target value must be 0 or greater.");
+      return;
+    }
+
+    if (currentValue === "" || Number(currentValue) < 0) {
+      setError("Current value must be 0 or greater.");
+      return;
+    }
+
+    if (!userId) {
+      setError("Please select a user.");
+      return;
+    }
+
+    const goalData = {
+      title,
+      description,
+      targetValue: Number(targetValue),
+      currentValue: Number(currentValue),
+      dueDate,
+      status,
+      userId: Number(userId),
+    };
+
+    try {
+      if (editingGoal) {
+        await updateGoal(editingGoal.id, goalData);
+        setMessage("Goal updated successfully.");
+      } else {
+        await createGoal(goalData);
+        setMessage("Goal created successfully.");
+      }
+
+      resetForm();
 
       if (onSuccess) {
         onSuccess();
       }
     } catch (err) {
-      setError("Failed to create goal.");
+      setError(
+        err.response?.data?.message ||
+          `Failed to ${editingGoal ? "update" : "create"} goal.`
+      );
       console.error(err);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    resetForm();
+    if (onCancelEdit) {
+      onCancelEdit();
     }
   };
 
   return (
     <div className="dashboard-section">
-      <h2>Create Goal</h2>
+      <h2>
+        {editingGoal ? `Editing: ${editingGoal.title}` : "Create Goal"}
+      </h2>
 
       <form onSubmit={handleSubmit} className="form-layout">
         <label>
@@ -126,7 +201,15 @@ function CreateGoalForm({ onSuccess }) {
 
         <label>
           Assigned User
-          <select value={userId} onChange={(e) => setUserId(e.target.value)} required>
+          <select
+            value={userId}
+            onChange={(e) => setUserId(e.target.value)}
+            required
+            disabled={users.length === 0}
+          >
+            <option value="">
+              {users.length === 0 ? "No users available" : "Select a user"}
+            </option>
             {users.map((user) => (
               <option key={user.id} value={user.id}>
                 {user.firstName} {user.lastName}
@@ -135,7 +218,27 @@ function CreateGoalForm({ onSuccess }) {
           </select>
         </label>
 
-        <button type="submit">Create Goal</button>
+        <button type="submit" disabled={users.length === 0}>
+          {editingGoal ? "Update Goal" : "Create Goal"}
+        </button>
+
+        {editingGoal && (
+          <button
+            type="button"
+            onClick={handleCancelEdit}
+            style={{
+              marginTop: "10px",
+              backgroundColor: "#6b7280",
+              color: "white",
+              border: "none",
+              padding: "8px 12px",
+              borderRadius: "6px",
+              cursor: "pointer"
+            }}
+          >
+            Cancel Edit
+          </button>
+        )}
       </form>
 
       {message && <p className="success-message">{message}</p>}
