@@ -121,3 +121,23 @@ export const updateProperty = async (id, propertyData) => {
   const response = await axios.put(`${API_BASE_URL}/properties/${id}`, propertyData);
   return response.data;
 };
+// USERS
+export const createUser = async (userData) => {
+  const response = await axios.post(`${API_BASE_URL}/users`, userData);
+  return response.data;
+};
+
+export const updateUser = async (id, userData) => {
+  const response = await axios.put(`${API_BASE_URL}/users/${id}`, userData);
+  return response.data;
+};
+
+export const deactivateUser = async (id) => {
+  const response = await axios.put(`${API_BASE_URL}/users/${id}/deactivate`);
+  return response.data;
+};
+
+export const reactivateUser = async (id) => {
+  const response = await axios.put(`${API_BASE_URL}/users/${id}/reactivate`);
+  return response.data;
+};

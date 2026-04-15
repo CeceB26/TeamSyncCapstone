@@ -18,7 +18,7 @@ public class CreateUserRequest {
     @NotBlank
     private String email;
 
-    @NotBlank
+    // Optional for updates
     private String password;
 
     private RoleType role;

@@ -7,6 +7,7 @@ import AnnouncementManagementPanel from "../components/AnnouncementManagementPan
 import PropertyManagementPanel from "../components/PropertyManagementPanel";
 import GoalManagementPanel from "../components/GoalManagementPanel";
 import CollapsiblePanel from "../components/CollapsiblePanel";
+import UserManagementPanel from "../components/UserManagementPanel";
 
 function AdminDashboard() {
   const [summary, setSummary] = useState(null);
@@ -49,8 +50,13 @@ function AdminDashboard() {
         <SummaryCard title="Total Commissions" value={summary.totalCommissions} />
       </div>
 
+    
       <CollapsiblePanel title="Announcement Management" defaultOpen={true}>
         <AnnouncementManagementPanel onRefresh={handleRefresh} />
+      </CollapsiblePanel>
+
+      <CollapsiblePanel title="User Management">
+        <UserManagementPanel onRefresh={handleRefresh} />
       </CollapsiblePanel>
 
       <CollapsiblePanel title="Goal Management">
