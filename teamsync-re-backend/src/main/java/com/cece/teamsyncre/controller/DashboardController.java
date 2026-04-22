@@ -7,6 +7,7 @@ import com.cece.teamsyncre.repository.AnnouncementRepository;
 import com.cece.teamsyncre.repository.CommissionRepository;
 import com.cece.teamsyncre.repository.EventRepository;
 import com.cece.teamsyncre.repository.GoalRepository;
+import com.cece.teamsyncre.repository.PropertyRepository;
 import com.cece.teamsyncre.repository.UserRepository;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,17 +25,20 @@ public class DashboardController {
     private final AnnouncementRepository announcementRepository;
     private final EventRepository eventRepository;
     private final CommissionRepository commissionRepository;
+    private final PropertyRepository propertyRepository;
 
     public DashboardController(UserRepository userRepository,
                                GoalRepository goalRepository,
                                AnnouncementRepository announcementRepository,
                                EventRepository eventRepository,
-                               CommissionRepository commissionRepository) {
+                               CommissionRepository commissionRepository,
+                               PropertyRepository propertyRepository) {
         this.userRepository = userRepository;
         this.goalRepository = goalRepository;
         this.announcementRepository = announcementRepository;
         this.eventRepository = eventRepository;
         this.commissionRepository = commissionRepository;
+        this.propertyRepository = propertyRepository;
     }
 
     @GetMapping("/admin-summary")
@@ -55,10 +59,12 @@ public class DashboardController {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         return UserDashboardResponse.builder()
+                .user(user)
                 .goals(goalRepository.findByUser(user))
                 .commissions(commissionRepository.findByUser(user))
                 .announcements(announcementRepository.findAll())
                 .events(eventRepository.findAll())
+                .properties(propertyRepository.findByUser(user))
                 .build();
     }
 }

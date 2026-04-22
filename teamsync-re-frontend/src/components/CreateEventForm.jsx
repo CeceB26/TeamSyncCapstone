@@ -29,7 +29,7 @@ function CreateEventForm({ onSuccess, editingEvent, onCancelEdit }) {
     };
 
     fetchUsers();
-  }, [editingEvent]);
+  }, []);
 
   useEffect(() => {
     if (editingEvent) {
@@ -58,6 +58,8 @@ function CreateEventForm({ onSuccess, editingEvent, onCancelEdit }) {
 
       setMessage("");
       setError("");
+    } else {
+      resetForm();
     }
   }, [editingEvent]);
 

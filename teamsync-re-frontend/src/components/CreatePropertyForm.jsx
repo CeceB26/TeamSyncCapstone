@@ -42,7 +42,7 @@ function CreatePropertyForm({ onSuccess, editingProperty, onCancelEdit }) {
     };
 
     fetchUsers();
-  }, [editingProperty]);
+  }, []);
 
   useEffect(() => {
     if (editingProperty) {
@@ -69,6 +69,8 @@ function CreatePropertyForm({ onSuccess, editingProperty, onCancelEdit }) {
       setUserId(editingProperty.user?.id ? String(editingProperty.user.id) : "");
       setMessage("");
       setError("");
+    } else {
+      resetForm();
     }
   }, [editingProperty]);
 
@@ -105,8 +107,23 @@ function CreatePropertyForm({ onSuccess, editingProperty, onCancelEdit }) {
       return;
     }
 
-    if (!listPrice || Number(listPrice) <= 0) {
+    if (!listPrice || isNaN(Number(listPrice))) {
+      setError("List price is required and must be a valid number.");
+      return;
+    }
+
+    if (Number(listPrice) <= 0) {
       setError("List price must be greater than 0.");
+      return;
+    }
+
+    if (salePrice && isNaN(Number(salePrice))) {
+      setError("Sale price must be a valid number.");
+      return;
+    }
+
+    if (salePrice && Number(salePrice) <= 0) {
+      setError("Sale price must be greater than 0.");
       return;
     }
 
