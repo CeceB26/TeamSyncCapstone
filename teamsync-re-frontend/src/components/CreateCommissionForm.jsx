@@ -31,7 +31,7 @@ function CreateCommissionForm({ onSuccess, editingCommission, onCancelEdit }) {
     };
 
     fetchUsers();
-  }, [editingCommission]);
+  }, []);
 
   useEffect(() => {
     if (editingCommission) {
@@ -45,6 +45,8 @@ function CreateCommissionForm({ onSuccess, editingCommission, onCancelEdit }) {
       setUserId(editingCommission.user?.id ? String(editingCommission.user.id) : "");
       setMessage("");
       setError("");
+    } else {
+      resetForm();
     }
   }, [editingCommission]);
 
@@ -67,8 +69,13 @@ function CreateCommissionForm({ onSuccess, editingCommission, onCancelEdit }) {
     setMessage("");
     setError("");
 
-    if (amount === "" || Number(amount) < 0) {
-      setError("Amount must be 0 or greater.");
+    if (amount === "" || isNaN(Number(amount))) {
+      setError("Amount is required and must be a valid number.");
+      return;
+    }
+
+    if (Number(amount) < 0) {
+      setError("Amount cannot be negative.");
       return;
     }
 

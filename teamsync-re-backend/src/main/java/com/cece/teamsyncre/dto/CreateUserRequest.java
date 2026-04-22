@@ -3,6 +3,7 @@ package com.cece.teamsyncre.dto;
 import com.cece.teamsyncre.enums.RoleType;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
@@ -18,8 +19,6 @@ public class CreateUserRequest {
     @NotBlank
     private String email;
 
-    // Optional for updates
-    private String password;
-
+    @NotNull
     private RoleType role;
 }

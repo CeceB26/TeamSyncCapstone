@@ -26,9 +26,10 @@ public class UserService {
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
                 .email(request.getEmail())
-                .password(request.getPassword())
+                .password("")
                 .role(role)
-                .status(UserStatus.ACTIVE)
+                .status(UserStatus.PENDING)
+                .enabled(false)
                 .createdAt(LocalDateTime.now())
                 .build();
 
@@ -37,40 +38,5 @@ public class UserService {
 
     public List<User> getAllUsers() {
         return userRepository.findAll();
-    }
-
-    public User updateUser(Long id, CreateUserRequest request) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
-
-        user.setFirstName(request.getFirstName());
-        user.setLastName(request.getLastName());
-        user.setEmail(request.getEmail());
-
-        if (request.getPassword() != null && !request.getPassword().isBlank()) {
-            user.setPassword(request.getPassword());
-        }
-
-        if (request.getRole() != null) {
-            user.setRole(request.getRole());
-        }
-
-        return userRepository.save(user);
-    }
-
-    public User deactivateUser(Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
-
-        user.setStatus(UserStatus.SUSPENDED);
-        return userRepository.save(user);
-    }
-
-    public User reactivateUser(Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
-
-        user.setStatus(UserStatus.ACTIVE);
-        return userRepository.save(user);
     }
 }

@@ -1,22 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { getUserDashboard } from "../services/dashboardService";
+import { useEffect, useRef, useState } from "react";
+import { getUserDashboard, getProperties } from "../services/dashboardService";
+import PropertyListUser from "../components/PropertyListUser";
 
 function UserDashboard() {
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  const [showRequestModal, setShowRequestModal] = useState(false);
-  const [requestMode, setRequestMode] = useState("EDIT");
-  const [requestType, setRequestType] = useState("GOAL");
-  const [selectedItemId, setSelectedItemId] = useState("");
-  const [requestForm, setRequestForm] = useState({});
-
-  const [messageForm, setMessageForm] = useState({
-    recipientId: "admin",
-    subject: "",
-    body: "",
-  });
 
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [logoFailed, setLogoFailed] = useState(false);
@@ -63,13 +52,21 @@ function UserDashboard() {
   const [savedAiDrafts, setSavedAiDrafts] = useState([]);
   const [expandedAiDraftId, setExpandedAiDraftId] = useState(null);
 
+  const [properties, setProperties] = useState([]);
+
   const profileMenuRef = useRef(null);
 
-  const testUserId = 1;
+  const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser") || "null");
+  const loggedInUserId = loggedInUser?.id || null;
 
   useEffect(() => {
+    if (!loggedInUserId) {
+      window.location.href = "/login";
+      return;
+    }
+
     loadDashboard();
-  }, []);
+  }, [loggedInUserId]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -89,8 +86,18 @@ function UserDashboard() {
   const loadDashboard = async () => {
     try {
       setLoading(true);
-      const data = await getUserDashboard(testUserId);
-      setDashboard(data);
+      const data = await getUserDashboard(loggedInUserId);
+
+      let allProperties = [];
+      try {
+        allProperties = await getProperties();
+        allProperties = allProperties.filter((prop) => prop.user?.id === loggedInUserId);
+      } catch (err) {
+        console.error("Failed to fetch properties:", err);
+      }
+
+      setProperties(allProperties);
+      setDashboard({ ...data, properties: allProperties });
       setError("");
     } catch (err) {
       console.error(err);
@@ -100,225 +107,23 @@ function UserDashboard() {
     }
   };
 
+  if (!loggedInUserId) {
+    return null;
+  }
+
   const user = dashboard?.user || {};
-  const userId = user?.id || testUserId;
+  const userId = user?.id || loggedInUserId;
 
   const userName =
     user?.firstName && user?.lastName
       ? `${user.firstName} ${user.lastName}`
-      : user?.firstName || "User";
+      : user?.firstName ||
+        (loggedInUser?.firstName && loggedInUser?.lastName
+          ? `${loggedInUser.firstName} ${loggedInUser.lastName}`
+          : loggedInUser?.firstName || "User");
 
-  const userEmail = user?.email || "No email available";
-  const userRole = user?.role || "USER";
-
-  const availableItems = useMemo(() => {
-    if (!dashboard) return [];
-
-    switch (requestType) {
-      case "GOAL":
-        return dashboard.goals || [];
-      case "PROPERTY":
-        return dashboard.properties || [];
-      case "EVENT":
-        return dashboard.events || [];
-      case "COMMISSION":
-        return dashboard.commissions || [];
-      default:
-        return [];
-    }
-  }, [dashboard, requestType]);
-
-  const selectedItem = useMemo(() => {
-    return (
-      availableItems.find((item) => String(item.id) === String(selectedItemId)) ||
-      null
-    );
-  }, [availableItems, selectedItemId]);
-
-  const getEmptyFormByType = (type) => {
-    switch (type) {
-      case "GOAL":
-        return {
-          title: "",
-          description: "",
-          status: "NOT_STARTED",
-          currentValue: "",
-          targetValue: "",
-        };
-      case "PROPERTY":
-        return {
-          address: "",
-          city: "",
-          state: "",
-          zipCode: "",
-          status: "",
-          listPrice: "",
-          salePrice: "",
-        };
-      case "EVENT":
-        return {
-          title: "",
-          eventDate: "",
-          location: "",
-        };
-      case "COMMISSION":
-        return {
-          transactionName: "",
-          amount: "",
-          closingDate: "",
-        };
-      default:
-        return {};
-    }
-  };
-
-  const getEditFormByType = (type, item) => {
-    if (!item) return {};
-
-    switch (type) {
-      case "GOAL":
-        return {
-          title: item.title || "",
-          description: item.description || "",
-          status: item.status || "",
-          currentValue: item.currentValue ?? "",
-          targetValue: item.targetValue ?? "",
-        };
-      case "PROPERTY":
-        return {
-          address: item.address || "",
-          city: item.city || "",
-          state: item.state || "",
-          zipCode: item.zipCode || "",
-          status: item.status || "",
-          listPrice: item.listPrice ?? "",
-          salePrice: item.salePrice ?? "",
-        };
-      case "EVENT":
-        return {
-          title: item.title || "",
-          eventDate: item.eventDate || "",
-          location: item.location || "",
-        };
-      case "COMMISSION":
-        return {
-          transactionName: item.transactionName || "",
-          amount: item.amount ?? "",
-          closingDate: item.closingDate || "",
-        };
-      default:
-        return {};
-    }
-  };
-
-  useEffect(() => {
-    setSelectedItemId("");
-
-    if (requestMode === "NEW") {
-      setRequestForm(getEmptyFormByType(requestType));
-    } else {
-      setRequestForm({});
-    }
-  }, [requestMode, requestType]);
-
-  useEffect(() => {
-    if (requestMode !== "EDIT") return;
-
-    if (!selectedItem) {
-      setRequestForm({});
-      return;
-    }
-
-    setRequestForm(getEditFormByType(requestType, selectedItem));
-  }, [selectedItem, requestType, requestMode]);
-
-  const handleRequestFormChange = (e) => {
-    const { name, value } = e.target;
-    setRequestForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmitRequest = async (e) => {
-    e.preventDefault();
-
-    if (requestMode === "EDIT" && !selectedItem) {
-      alert("Please select an item.");
-      return;
-    }
-
-    const payload = {
-      requestMode,
-      requestType,
-      recordId: requestMode === "EDIT" ? selectedItem.id : null,
-      submittedByUserId: userId,
-      requestedData: JSON.stringify(requestForm),
-      status: "PENDING",
-    };
-
-    try {
-      const response = await fetch("http://localhost:8080/api/edit-requests", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to submit request");
-      }
-
-      alert(
-        requestMode === "EDIT"
-          ? "Edit request submitted."
-          : "New item request submitted."
-      );
-
-      setShowRequestModal(false);
-      setSelectedItemId("");
-      setRequestForm({});
-    } catch (err) {
-      console.error(err);
-      alert("Failed to submit request.");
-    }
-  };
-
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
-
-    try {
-      const response = await fetch("http://localhost:8080/api/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          senderId: userId,
-          ...messageForm,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to send message");
-      }
-
-      alert("Message sent");
-      setMessageForm({
-        recipientId: "admin",
-        subject: "",
-        body: "",
-      });
-    } catch (err) {
-      console.error(err);
-      alert("Failed to send message.");
-    }
-  };
-
-  const renderItemLabel = (item) => {
-    return item.title || item.address || item.transactionName || `Item ${item.id}`;
-  };
+  const userEmail = user?.email || loggedInUser?.email || "No email available";
+  const userRole = user?.role || loggedInUser?.role || "USER";
 
   const handleCommissionChange = (e) => {
     const { name, value } = e.target;
@@ -1058,13 +863,9 @@ ${presentationForm.notes || ""}
         </div>
       </header>
 
-      <div style={topBarStyle}>
-        <button
-          onClick={() => setShowRequestModal(true)}
-          style={primaryButtonStyle}
-        >
-          Submit Request
-        </button>
+      <div style={noticeBannerStyle}>
+        If there is inaccurate information, requests, or updates needed please
+        contact leadership or your assigned team lead.
       </div>
 
       <div style={summaryGridStyle}>
@@ -1153,123 +954,12 @@ ${presentationForm.notes || ""}
         </DashboardCard>
 
         <DashboardCard title="Properties">
-          <ItemList
-            data={dashboard?.properties}
+          <PropertyListUser
+            properties={dashboard?.properties}
             emptyText="No properties assigned yet."
           />
         </DashboardCard>
-
-        <DashboardCard title="Messages">
-          <form onSubmit={handleSendMessage} style={{ display: "grid", gap: "12px" }}>
-            <select
-              name="recipientId"
-              value={messageForm.recipientId}
-              onChange={(e) =>
-                setMessageForm({ ...messageForm, recipientId: e.target.value })
-              }
-              style={inputStyle}
-            >
-              <option value="admin">Admin</option>
-              <option value="2">User 2</option>
-              <option value="3">User 3</option>
-            </select>
-
-            <input
-              placeholder="Subject"
-              value={messageForm.subject}
-              onChange={(e) =>
-                setMessageForm({ ...messageForm, subject: e.target.value })
-              }
-              style={inputStyle}
-            />
-
-            <textarea
-              placeholder="Write your message"
-              value={messageForm.body}
-              onChange={(e) =>
-                setMessageForm({ ...messageForm, body: e.target.value })
-              }
-              rows="5"
-              style={textAreaStyle}
-            />
-
-            <button type="submit" style={secondaryButtonStyle}>
-              Send Message
-            </button>
-          </form>
-        </DashboardCard>
       </div>
-
-      {showRequestModal && (
-        <div style={modalOverlayStyle}>
-          <div style={modalContentStyle}>
-            <div style={modalHeaderStyle}>
-              <h2 style={{ margin: 0 }}>Submit Request</h2>
-              <button
-                onClick={() => setShowRequestModal(false)}
-                style={closeButtonStyle}
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmitRequest} style={{ display: "grid", gap: "14px" }}>
-              <select
-                value={requestMode}
-                onChange={(e) => setRequestMode(e.target.value)}
-                style={inputStyle}
-              >
-                <option value="EDIT">Edit Existing</option>
-                <option value="NEW">Add New</option>
-              </select>
-
-              <select
-                value={requestType}
-                onChange={(e) => setRequestType(e.target.value)}
-                style={inputStyle}
-              >
-                <option value="GOAL">Goal</option>
-                <option value="PROPERTY">Property</option>
-                <option value="EVENT">Event</option>
-                <option value="COMMISSION">Commission</option>
-              </select>
-
-              {requestMode === "EDIT" && (
-                <select
-                  value={selectedItemId}
-                  onChange={(e) => setSelectedItemId(e.target.value)}
-                  style={inputStyle}
-                >
-                  <option value="">Select Item</option>
-                  {availableItems.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {renderItemLabel(item)}
-                    </option>
-                  ))}
-                </select>
-              )}
-
-              {Object.keys(requestForm).map((field) => (
-                <input
-                  key={field}
-                  type="text"
-                  name={field}
-                  value={requestForm[field] ?? ""}
-                  onChange={handleRequestFormChange}
-                  placeholder={field}
-                  style={inputStyle}
-                />
-              ))}
-
-              <button type="submit" style={primaryButtonStyle}>
-                {requestMode === "EDIT"
-                  ? "Submit Edit Request"
-                  : "Submit New Item Request"}
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
 
       {showCommissionModal && (
         <div style={modalOverlayStyle}>
@@ -2010,6 +1700,18 @@ const subTextStyle = {
   fontSize: "14px",
 };
 
+const noticeBannerStyle = {
+  marginTop: "20px",
+  marginBottom: "20px",
+  background: "#eff6ff",
+  border: "1px solid #bfdbfe",
+  color: "#1e3a8a",
+  padding: "14px 16px",
+  borderRadius: "12px",
+  fontSize: "14px",
+  lineHeight: 1.5,
+};
+
 const profileWrapperStyle = {
   position: "relative",
 };
@@ -2089,13 +1791,6 @@ const menuItemStyle = {
   padding: "14px 16px",
   cursor: "pointer",
   fontSize: "14px",
-};
-
-const topBarStyle = {
-  display: "flex",
-  justifyContent: "flex-end",
-  marginTop: "20px",
-  marginBottom: "20px",
 };
 
 const primaryButtonStyle = {

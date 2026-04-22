@@ -1,0 +1,820 @@
+{
+  "info": {
+    "_postman_id": "teamsync-api-collection",
+    "name": "TeamSync Backend API",
+    "description": "Complete API collection for TeamSync Real Estate Management Platform\n\nBase URL: http://localhost:8080",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set(\"userId\", jsonData.id);",
+                  "    pm.environment.set(\"userRole\", jsonData.role);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Confirm Email Token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/confirm?token=YOUR_TOKEN_HERE",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "confirm"],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "YOUR_TOKEN_HERE"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Set Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"confirmation_token_here\",\n  \"password\": \"newPassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/set-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "set-password"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Create User (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"role\": \"AGENT\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "users"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create User (Public)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Smith\",\n  \"email\": \"jane.smith@example.com\",\n  \"role\": \"AGENT\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Admin Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/dashboard/admin-summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "dashboard", "admin-summary"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "User Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/dashboard/user/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "dashboard", "user", "{{userId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Announcements",
+      "item": [
+        {
+          "name": "Create Announcement",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Company Meeting\",\n  \"content\": \"Join us for the quarterly business review meeting\",\n  \"createdByUserId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/announcements",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "announcements"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Announcements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/announcements",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "announcements"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Announcement",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Company Meeting\",\n  \"content\": \"Updated announcement content\",\n  \"createdByUserId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/announcements/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "announcements", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Announcement",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/announcements/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "announcements", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Properties",
+      "item": [
+        {
+          "name": "Create Property",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"representation\": \"BUYER\",\n  \"listingDate\": \"2026-01-15\",\n  \"closingDate\": \"2026-03-15\",\n  \"address\": \"123 Main Street\",\n  \"city\": \"Springfield\",\n  \"state\": \"IL\",\n  \"zipCode\": \"62701\",\n  \"mls\": \"MLS123456\",\n  \"listPrice\": 350000,\n  \"salePrice\": 340000,\n  \"status\": \"SOLD\",\n  \"clientName\": \"John Smith\",\n  \"userId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/properties",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "properties"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Properties",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/properties",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "properties"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Property",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"representation\": \"SELLER\",\n  \"listingDate\": \"2026-01-15\",\n  \"closingDate\": \"2026-04-15\",\n  \"address\": \"123 Main Street\",\n  \"city\": \"Springfield\",\n  \"state\": \"IL\",\n  \"zipCode\": \"62701\",\n  \"mls\": \"MLS123456\",\n  \"listPrice\": 350000,\n  \"salePrice\": 345000,\n  \"status\": \"PENDING\",\n  \"clientName\": \"John Smith\",\n  \"userId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/properties/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "properties", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Property",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/properties/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "properties", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Commissions",
+      "item": [
+        {
+          "name": "Create Commission",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 8500.00,\n  \"transactionName\": \"Smith Property Sale\",\n  \"closingDate\": \"2026-03-15\",\n  \"userId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/commissions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "commissions"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Commissions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/commissions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "commissions"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Commission",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 8750.00,\n  \"transactionName\": \"Smith Property Sale - Updated\",\n  \"closingDate\": \"2026-03-20\",\n  \"userId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/commissions/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "commissions", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Commission",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/commissions/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "commissions", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Goals",
+      "item": [
+        {
+          "name": "Create Goal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Q1 Sales Target\",\n  \"description\": \"Close 10 properties in Q1\",\n  \"targetValue\": 10,\n  \"currentValue\": 3,\n  \"dueDate\": \"2026-03-31\",\n  \"status\": \"IN_PROGRESS\",\n  \"userId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/goals",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "goals"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Goals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/goals",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "goals"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Goals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/goals/user/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "goals", "user", "{{userId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Goal",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/goals/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "goals", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Events",
+      "item": [
+        {
+          "name": "Create Event",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Team Meeting\",\n  \"description\": \"Monthly team sync meeting\",\n  \"eventDate\": \"2026-04-25T10:00:00\",\n  \"location\": \"Conference Room A\",\n  \"createdByUserId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/events",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Events",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/events",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Event",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Team Meeting\",\n  \"description\": \"Monthly team sync meeting - Rescheduled\",\n  \"eventDate\": \"2026-04-26T10:00:00\",\n  \"location\": \"Conference Room B\",\n  \"createdByUserId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/events/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Event",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/events/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "AI Drafts",
+      "item": [
+        {
+          "name": "Create AI Draft",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"taskType\": \"LISTING_DESCRIPTION\",\n  \"audience\": \"First-time buyers\",\n  \"tone\": \"Professional\",\n  \"propertyAddress\": \"123 Main Street, Springfield IL\",\n  \"cityState\": \"Springfield, IL\",\n  \"pricePoint\": 350000,\n  \"bedsBaths\": \"3 bed / 2 bath\",\n  \"propertyType\": \"Single Family Home\",\n  \"transactionStage\": \"LISTING\",\n  \"callToAction\": \"Schedule a showing today\",\n  \"context\": \"Charming home in established neighborhood\",\n  \"outputText\": \"Generated output text from AI\",\n  \"submittedByUserId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ai-drafts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ai-drafts"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All AI Drafts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/ai-drafts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ai-drafts"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User AI Drafts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/ai-drafts/user/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ai-drafts", "user", "{{userId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Commission Scenarios",
+      "item": [
+        {
+          "name": "Create Commission Scenario",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"salePrice\": 500000,\n  \"commissionPercent\": 2.5,\n  \"brokerSplitPercent\": 50,\n  \"referralPercent\": 20,\n  \"transactionFee\": 1000,\n  \"grossCommission\": 12500,\n  \"referralAmount\": 2500,\n  \"afterReferral\": 10000,\n  \"brokerSplitAmount\": 5000,\n  \"estimatedNet\": 3000,\n  \"submittedByUserId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/commission-scenarios",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "commission-scenarios"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Commission Scenarios",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/commission-scenarios",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "commission-scenarios"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Commission Scenarios",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/commission-scenarios/user/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "commission-scenarios", "user", "{{userId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Commission Scenario",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"salePrice\": 550000,\n  \"commissionPercent\": 2.5,\n  \"brokerSplitPercent\": 50,\n  \"referralPercent\": 20,\n  \"transactionFee\": 1000,\n  \"grossCommission\": 13750,\n  \"referralAmount\": 2750,\n  \"afterReferral\": 11000,\n  \"brokerSplitAmount\": 5500,\n  \"estimatedNet\": 3200,\n  \"submittedByUserId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/commission-scenarios/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "commission-scenarios", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "MLS Shortcuts",
+      "item": [
+        {
+          "name": "Create MLS Shortcut",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": \"My Listings\",\n  \"url\": \"https://mls.example.com/my-listings\",\n  \"submittedByUserId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/mls-shortcuts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "mls-shortcuts"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All MLS Shortcuts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/mls-shortcuts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "mls-shortcuts"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User MLS Shortcuts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/mls-shortcuts/user/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "mls-shortcuts", "user", "{{userId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Presentation Requests",
+      "item": [
+        {
+          "name": "Create Presentation Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"presentationType\": \"MARKET_ANALYSIS\",\n  \"clientName\": \"John Smith\",\n  \"propertyAddress\": \"123 Main Street, Springfield IL\",\n  \"notes\": \"Client interested in market trends for downtown area\",\n  \"submittedByUserId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/presentation-requests",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "presentation-requests"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Presentation Requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/presentation-requests",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "presentation-requests"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Presentation Requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/presentation-requests/user/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "presentation-requests", "user", "{{userId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Test",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/test/hello",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "test", "hello"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "userRole",
+      "value": "AGENT",
+      "type": "string"
+    }
+  ]
+}

@@ -30,7 +30,7 @@ function CreateGoalForm({ onSuccess, editingGoal, onCancelEdit }) {
     };
 
     fetchUsers();
-  }, [editingGoal]);
+  }, []);
 
   useEffect(() => {
     if (editingGoal) {
@@ -51,6 +51,8 @@ function CreateGoalForm({ onSuccess, editingGoal, onCancelEdit }) {
       setUserId(editingGoal.user?.id ? String(editingGoal.user.id) : "");
       setMessage("");
       setError("");
+    } else {
+      resetForm();
     }
   }, [editingGoal]);
 
@@ -81,13 +83,23 @@ function CreateGoalForm({ onSuccess, editingGoal, onCancelEdit }) {
       return;
     }
 
-    if (targetValue === "" || Number(targetValue) < 0) {
-      setError("Target value must be 0 or greater.");
+    if (targetValue === "" || isNaN(Number(targetValue))) {
+      setError("Target value is required and must be a valid number.");
       return;
     }
 
-    if (currentValue === "" || Number(currentValue) < 0) {
-      setError("Current value must be 0 or greater.");
+    if (Number(targetValue) < 0) {
+      setError("Target value cannot be negative.");
+      return;
+    }
+
+    if (currentValue === "" || isNaN(Number(currentValue))) {
+      setError("Current value is required and must be a valid number.");
+      return;
+    }
+
+    if (Number(currentValue) < 0) {
+      setError("Current value cannot be negative.");
       return;
     }
 

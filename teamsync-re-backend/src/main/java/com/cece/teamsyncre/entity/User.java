@@ -41,7 +41,8 @@ public class User {
     private UserStatus status;
 
     @Column(nullable = false)
-    private LocalDateTime createdAt;
+    private boolean enabled; // 🔥 NEW
 
-    
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
 }
