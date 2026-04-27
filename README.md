@@ -272,7 +272,7 @@ server.port=8080
 Replace:
 
 ```text
-YOUR_LOCAL_MYSQL_PASSWORD
+YOUR_LOCAL_MYSQL_GIT PASSWORD
 ```
 
 with your local MySQL password.
