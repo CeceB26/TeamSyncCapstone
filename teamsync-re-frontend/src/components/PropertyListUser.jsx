@@ -32,6 +32,12 @@ function PropertyListUser({ properties, emptyText = "No properties assigned yet.
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
+    gap: "12px",
+  };
+
+  const valueTextStyle = {
+    textAlign: "right",
+    wordBreak: "break-word",
   };
 
   const statusBadgeStyle = (status) => ({
@@ -75,42 +81,55 @@ function PropertyListUser({ properties, emptyText = "No properties assigned yet.
           {property.city && property.state && property.zipCode && (
             <div style={propertyDetailStyle}>
               <span>📍 Location</span>
-              <span>{property.city}, {property.state} {property.zipCode}</span>
+              <span style={valueTextStyle}>
+                {property.city}, {property.state} {property.zipCode}
+              </span>
+            </div>
+          )}
+
+          {property.agentName && (
+            <div style={propertyDetailStyle}>
+              <span>🧑‍💼 Agent</span>
+              <span style={valueTextStyle}>{property.agentName}</span>
             </div>
           )}
 
           {property.mls && (
             <div style={propertyDetailStyle}>
               <span>🏷️ MLS</span>
-              <span>{property.mls}</span>
+              <span style={valueTextStyle}>{property.mls}</span>
             </div>
           )}
 
           {property.representation && (
             <div style={propertyDetailStyle}>
               <span>🤝 Representation</span>
-              <span>{property.representation}</span>
+              <span style={valueTextStyle}>{property.representation}</span>
             </div>
           )}
 
           {property.clientName && (
             <div style={propertyDetailStyle}>
               <span>👤 Client</span>
-              <span>{property.clientName}</span>
+              <span style={valueTextStyle}>{property.clientName}</span>
             </div>
           )}
 
           {property.listPrice && (
             <div style={propertyDetailStyle}>
               <span>💰 List Price</span>
-              <span style={priceStyle}>${Number(property.listPrice).toLocaleString()}</span>
+              <span style={{ ...priceStyle, ...valueTextStyle }}>
+                ${Number(property.listPrice).toLocaleString()}
+              </span>
             </div>
           )}
 
           {property.salePrice && (
             <div style={propertyDetailStyle}>
               <span>✅ Sale Price</span>
-              <span style={priceStyle}>${Number(property.salePrice).toLocaleString()}</span>
+              <span style={{ ...priceStyle, ...valueTextStyle }}>
+                ${Number(property.salePrice).toLocaleString()}
+              </span>
             </div>
           )}
 
@@ -126,7 +145,7 @@ function PropertyListUser({ properties, emptyText = "No properties assigned yet.
           {(property.listingDate || property.closingDate) && (
             <div style={propertyDetailStyle}>
               <span>📅 Dates</span>
-              <span>
+              <span style={valueTextStyle}>
                 {property.listingDate ? `Listed: ${property.listingDate}` : ""}
                 {property.listingDate && property.closingDate ? " | " : ""}
                 {property.closingDate ? `Closed: ${property.closingDate}` : ""}

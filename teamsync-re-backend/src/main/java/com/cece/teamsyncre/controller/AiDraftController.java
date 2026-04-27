@@ -3,6 +3,7 @@ package com.cece.teamsyncre.controller;
 import com.cece.teamsyncre.dto.CreateAiDraftRequest;
 import com.cece.teamsyncre.entity.AiDraft;
 import com.cece.teamsyncre.service.AiDraftService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,17 +20,18 @@ public class AiDraftController {
     }
 
     @PostMapping
-    public AiDraft create(@RequestBody CreateAiDraftRequest request) {
-        return aiDraftService.create(request);
+    public ResponseEntity<AiDraft> create(@RequestBody CreateAiDraftRequest request) {
+        AiDraft savedDraft = aiDraftService.create(request);
+        return ResponseEntity.ok(savedDraft);
     }
 
     @GetMapping("/user/{userId}")
-    public List<AiDraft> getByUser(@PathVariable Long userId) {
-        return aiDraftService.getByUserId(userId);
+    public ResponseEntity<List<AiDraft>> getByUser(@PathVariable Long userId) {
+        return ResponseEntity.ok(aiDraftService.getByUserId(userId));
     }
 
     @GetMapping
-    public List<AiDraft> getAll() {
-        return aiDraftService.getAll();
+    public ResponseEntity<List<AiDraft>> getAll() {
+        return ResponseEntity.ok(aiDraftService.getAll());
     }
 }

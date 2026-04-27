@@ -34,19 +34,7 @@ function UserDashboard() {
   const [expandedPresentationId, setExpandedPresentationId] = useState(null);
 
   const [showAiModal, setShowAiModal] = useState(false);
-  const [aiAssistantForm, setAiAssistantForm] = useState({
-    taskType: "LISTING_DESCRIPTION",
-    audience: "Buyer",
-    tone: "Professional",
-    propertyAddress: "",
-    cityState: "",
-    pricePoint: "",
-    bedsBaths: "",
-    propertyType: "",
-    transactionStage: "",
-    callToAction: "",
-    context: "",
-  });
+  const [aiAssistantForm, setAiAssistantForm] = useState(getDefaultAiForm());
   const [aiOutput, setAiOutput] = useState("");
   const [showSavedAiDrafts, setShowSavedAiDrafts] = useState(false);
   const [savedAiDrafts, setSavedAiDrafts] = useState([]);
@@ -288,30 +276,35 @@ function UserDashboard() {
   };
 
   const loadAiTemplate = (taskType) => {
+    if (taskType === "WORKWEEK_BUILDER") {
+      setAiAssistantForm({
+        ...getDefaultAiForm(),
+        taskType: "WORKWEEK_BUILDER",
+        audience: "Agent",
+        tone: "Professional",
+        callToAction: "Follow the plan, adjust based on live activity, and review wins daily.",
+        context: "Build a realistic 7-day plan with daily time blocking, lead generation, follow-up, admin work, content, and appointments.",
+      });
+      setAiOutput("");
+      return;
+    }
+
     const templates = {
       LISTING_DESCRIPTION: {
+        ...getDefaultAiForm(),
         taskType: "LISTING_DESCRIPTION",
         audience: "Buyer",
         tone: "Professional",
-        propertyAddress: "",
-        cityState: "",
-        pricePoint: "",
-        bedsBaths: "",
-        propertyType: "",
         transactionStage: "Active",
         callToAction: "Schedule your private showing today.",
         context:
           "Highlight the most desirable features, lifestyle benefits, and buyer appeal.",
       },
       BUYER_FOLLOW_UP: {
+        ...getDefaultAiForm(),
         taskType: "BUYER_FOLLOW_UP",
         audience: "Buyer",
         tone: "Warm",
-        propertyAddress: "",
-        cityState: "",
-        pricePoint: "",
-        bedsBaths: "",
-        propertyType: "",
         transactionStage: "After consultation",
         callToAction:
           "Let me know what questions you have and when you'd like to take the next step.",
@@ -319,56 +312,40 @@ function UserDashboard() {
           "Follow up after a consultation or showing and keep the message encouraging and clear.",
       },
       SELLER_UPDATE: {
+        ...getDefaultAiForm(),
         taskType: "SELLER_UPDATE",
         audience: "Seller",
         tone: "Professional",
-        propertyAddress: "",
-        cityState: "",
-        pricePoint: "",
-        bedsBaths: "",
-        propertyType: "",
         transactionStage: "Active listing",
         callToAction: "Let's review the next best steps together.",
         context:
           "Provide a polished seller update about activity, feedback, and recommended next steps.",
       },
       SOCIAL_CAPTION: {
+        ...getDefaultAiForm(),
         taskType: "SOCIAL_CAPTION",
         audience: "General Audience",
         tone: "Confident",
-        propertyAddress: "",
-        cityState: "",
-        pricePoint: "",
-        bedsBaths: "",
-        propertyType: "",
         transactionStage: "Marketing",
         callToAction: "Message me for details or to schedule a showing.",
         context:
           "Create a short caption that feels polished, engaging, and marketable.",
       },
       OPEN_HOUSE_PROMO: {
+        ...getDefaultAiForm(),
         taskType: "OPEN_HOUSE_PROMO",
         audience: "Buyer",
         tone: "Friendly",
-        propertyAddress: "",
-        cityState: "",
-        pricePoint: "",
-        bedsBaths: "",
-        propertyType: "",
         transactionStage: "Open house",
         callToAction: "Stop by and see what makes this home stand out.",
         context:
           "Promote the home and invite foot traffic with a clear call to action.",
       },
       SHOWING_FEEDBACK_SUMMARY: {
+        ...getDefaultAiForm(),
         taskType: "SHOWING_FEEDBACK_SUMMARY",
         audience: "Seller",
         tone: "Direct",
-        propertyAddress: "",
-        cityState: "",
-        pricePoint: "",
-        bedsBaths: "",
-        propertyType: "",
         transactionStage: "After showings",
         callToAction:
           "Let’s decide whether we should adjust positioning, presentation, or pricing.",
@@ -376,14 +353,10 @@ function UserDashboard() {
           "Summarize feedback clearly and professionally without sounding negative or defensive.",
       },
       PRICE_REDUCTION_CONVERSATION: {
+        ...getDefaultAiForm(),
         taskType: "PRICE_REDUCTION_CONVERSATION",
         audience: "Seller",
         tone: "Confident",
-        propertyAddress: "",
-        cityState: "",
-        pricePoint: "",
-        bedsBaths: "",
-        propertyType: "",
         transactionStage: "Price review",
         callToAction:
           "I’d like to discuss a pricing adjustment that helps us attract stronger buyer attention.",
@@ -391,14 +364,10 @@ function UserDashboard() {
           "Frame a price reduction recommendation with market logic and professionalism.",
       },
       UNDER_CONTRACT_UPDATE: {
+        ...getDefaultAiForm(),
         taskType: "UNDER_CONTRACT_UPDATE",
         audience: "Buyer",
         tone: "Professional",
-        propertyAddress: "",
-        cityState: "",
-        pricePoint: "",
-        bedsBaths: "",
-        propertyType: "",
         transactionStage: "Under contract",
         callToAction: "I’ll keep you updated each step of the way.",
         context:
@@ -423,7 +392,35 @@ function UserDashboard() {
       transactionStage,
       callToAction,
       context,
+      agentName,
+      areasOfFocus,
+      weeklyGoals,
+      outcomeProjection,
+      workStartTime,
+      workEndTime,
+      appointments,
+      priorityTasks,
+      daysToPlan,
     } = aiAssistantForm;
+
+    if (taskType === "WORKWEEK_BUILDER") {
+      const draft = buildSevenDayPlan({
+        agentName,
+        areasOfFocus,
+        weeklyGoals,
+        outcomeProjection,
+        workStartTime,
+        workEndTime,
+        appointments,
+        priorityTasks,
+        callToAction,
+        context,
+        daysToPlan,
+      });
+
+      setAiOutput(draft);
+      return;
+    }
 
     const propertyLine = [
       propertyAddress,
@@ -690,19 +687,7 @@ Estimated Net: ${formatCurrency(estimatedNet)}
   };
 
   const clearAiAssistant = () => {
-    setAiAssistantForm({
-      taskType: "LISTING_DESCRIPTION",
-      audience: "Buyer",
-      tone: "Professional",
-      propertyAddress: "",
-      cityState: "",
-      pricePoint: "",
-      bedsBaths: "",
-      propertyType: "",
-      transactionStage: "",
-      callToAction: "",
-      context: "",
-    });
+    setAiAssistantForm(getDefaultAiForm());
     setAiOutput("");
   };
 
@@ -923,7 +908,7 @@ ${presentationForm.notes || ""}
 
           <ToolCard
             title="AI Assistant"
-            description="Draft listing content, follow-ups, seller updates, and more."
+            description="Draft listing content, follow-ups, seller updates, and build a 7-day AI workweek plan."
             buttonText="Open Assistant"
             onClick={() => setShowAiModal(true)}
           />
@@ -976,45 +961,44 @@ ${presentationForm.notes || ""}
 
             <div style={calculatorGridStyle}>
               <div style={{ display: "grid", gap: "12px" }}>
-                <input
+                <FloatingLabelInput
                   type="number"
                   name="salePrice"
+                  label="Sale Price"
                   value={commissionForm.salePrice}
                   onChange={handleCommissionChange}
-                  placeholder="Sale Price"
-                  style={inputStyle}
                 />
-                <input
+
+                <FloatingLabelInput
                   type="number"
                   name="commissionPercent"
+                  label="Commission %"
                   value={commissionForm.commissionPercent}
                   onChange={handleCommissionChange}
-                  placeholder="Commission %"
-                  style={inputStyle}
                 />
-                <input
+
+                <FloatingLabelInput
                   type="number"
                   name="brokerSplitPercent"
+                  label="Broker Split %"
                   value={commissionForm.brokerSplitPercent}
                   onChange={handleCommissionChange}
-                  placeholder="Broker Split %"
-                  style={inputStyle}
                 />
-                <input
+
+                <FloatingLabelInput
                   type="number"
                   name="referralPercent"
+                  label="Referral %"
                   value={commissionForm.referralPercent}
                   onChange={handleCommissionChange}
-                  placeholder="Referral %"
-                  style={inputStyle}
                 />
-                <input
+
+                <FloatingLabelInput
                   type="number"
                   name="transactionFee"
+                  label="Transaction Fee"
                   value={commissionForm.transactionFee}
                   onChange={handleCommissionChange}
-                  placeholder="Transaction Fee"
-                  style={inputStyle}
                 />
               </div>
 
@@ -1330,124 +1314,221 @@ ${presentationForm.notes || ""}
                 >
                   Under Contract
                 </button>
+                <button
+                  type="button"
+                  style={chipButtonStyle}
+                  onClick={() => loadAiTemplate("WORKWEEK_BUILDER")}
+                >
+                  7-Day Workweek Builder
+                </button>
               </div>
 
-              <div style={aiFormGridStyle}>
-                <select
-                  name="taskType"
-                  value={aiAssistantForm.taskType}
-                  onChange={handleAiFormChange}
-                  style={inputStyle}
-                >
-                  <option value="LISTING_DESCRIPTION">Listing Description</option>
-                  <option value="BUYER_FOLLOW_UP">Buyer Follow-Up</option>
-                  <option value="SELLER_UPDATE">Seller Update</option>
-                  <option value="SOCIAL_CAPTION">Social Caption</option>
-                  <option value="OPEN_HOUSE_PROMO">Open House Promo</option>
-                  <option value="SHOWING_FEEDBACK_SUMMARY">
-                    Showing Feedback Summary
-                  </option>
-                  <option value="PRICE_REDUCTION_CONVERSATION">
-                    Price Reduction Conversation
-                  </option>
-                  <option value="UNDER_CONTRACT_UPDATE">
-                    Under Contract Update
-                  </option>
-                </select>
+              {aiAssistantForm.taskType === "WORKWEEK_BUILDER" ? (
+                <>
+                  <div style={aiFormGridStyle}>
+                    <input
+                      name="agentName"
+                      value={aiAssistantForm.agentName}
+                      onChange={handleAiFormChange}
+                      placeholder="Agent Name"
+                      style={inputStyle}
+                    />
 
-                <select
-                  name="audience"
-                  value={aiAssistantForm.audience}
-                  onChange={handleAiFormChange}
-                  style={inputStyle}
-                >
-                  <option value="Buyer">Buyer</option>
-                  <option value="Seller">Seller</option>
-                  <option value="Investor">Investor</option>
-                  <option value="General Audience">General Audience</option>
-                  <option value="Past Client">Past Client</option>
-                </select>
+                    <input
+                      name="areasOfFocus"
+                      value={aiAssistantForm.areasOfFocus}
+                      onChange={handleAiFormChange}
+                      placeholder="Areas of Focus"
+                      style={inputStyle}
+                    />
 
-                <select
-                  name="tone"
-                  value={aiAssistantForm.tone}
-                  onChange={handleAiFormChange}
-                  style={inputStyle}
-                >
-                  <option value="Professional">Professional</option>
-                  <option value="Warm">Warm</option>
-                  <option value="Confident">Confident</option>
-                  <option value="Friendly">Friendly</option>
-                  <option value="Direct">Direct</option>
-                  <option value="Luxury">Luxury</option>
-                  <option value="Educational">Educational</option>
-                </select>
+                    <input
+                      name="weeklyGoals"
+                      value={aiAssistantForm.weeklyGoals}
+                      onChange={handleAiFormChange}
+                      placeholder="Weekly Goals"
+                      style={inputStyle}
+                    />
 
-                <input
-                  name="propertyAddress"
-                  value={aiAssistantForm.propertyAddress}
-                  onChange={handleAiFormChange}
-                  placeholder="Property Address"
-                  style={inputStyle}
-                />
+                    <input
+                      name="outcomeProjection"
+                      value={aiAssistantForm.outcomeProjection}
+                      onChange={handleAiFormChange}
+                      placeholder="Outcome Projection"
+                      style={inputStyle}
+                    />
 
-                <input
-                  name="cityState"
-                  value={aiAssistantForm.cityState}
-                  onChange={handleAiFormChange}
-                  placeholder="City, State"
-                  style={inputStyle}
-                />
+                    <input
+                      name="workStartTime"
+                      value={aiAssistantForm.workStartTime}
+                      onChange={handleAiFormChange}
+                      placeholder="Workday Start Time"
+                      style={inputStyle}
+                    />
 
-                <input
-                  name="pricePoint"
-                  value={aiAssistantForm.pricePoint}
-                  onChange={handleAiFormChange}
-                  placeholder="Price Point"
-                  style={inputStyle}
-                />
+                    <input
+                      name="workEndTime"
+                      value={aiAssistantForm.workEndTime}
+                      onChange={handleAiFormChange}
+                      placeholder="Workday End Time"
+                      style={inputStyle}
+                    />
 
-                <input
-                  name="bedsBaths"
-                  value={aiAssistantForm.bedsBaths}
-                  onChange={handleAiFormChange}
-                  placeholder="Beds / Baths / Sq Ft"
-                  style={inputStyle}
-                />
+                    <input
+                      name="priorityTasks"
+                      value={aiAssistantForm.priorityTasks}
+                      onChange={handleAiFormChange}
+                      placeholder="Top Priorities"
+                      style={inputStyle}
+                    />
 
-                <input
-                  name="propertyType"
-                  value={aiAssistantForm.propertyType}
-                  onChange={handleAiFormChange}
-                  placeholder="Property Type"
-                  style={inputStyle}
-                />
+                    <input
+                      name="daysToPlan"
+                      value={aiAssistantForm.daysToPlan}
+                      onChange={handleAiFormChange}
+                      placeholder="Days to Plan"
+                      style={inputStyle}
+                    />
+                  </div>
 
-                <input
-                  name="transactionStage"
-                  value={aiAssistantForm.transactionStage}
-                  onChange={handleAiFormChange}
-                  placeholder="Transaction Stage"
-                  style={inputStyle}
-                />
+                  <textarea
+                    name="appointments"
+                    value={aiAssistantForm.appointments}
+                    onChange={handleAiFormChange}
+                    rows="4"
+                    style={textAreaStyle}
+                    placeholder="Appointments, meetings, showings, family commitments, or fixed obligations"
+                  />
 
-                <input
-                  name="callToAction"
-                  value={aiAssistantForm.callToAction}
-                  onChange={handleAiFormChange}
-                  placeholder="Desired Call to Action"
-                  style={inputStyle}
-                />
-              </div>
+                  <textarea
+                    name="context"
+                    value={aiAssistantForm.context}
+                    onChange={handleAiFormChange}
+                    rows="5"
+                    style={textAreaStyle}
+                    placeholder="Add anything the AI should account for, like prospecting goals, content needs, admin backlog, travel time, client follow-up expectations, or preferred work style."
+                  />
+                </>
+              ) : (
+                <>
+                  <div style={aiFormGridStyle}>
+                    <select
+                      name="taskType"
+                      value={aiAssistantForm.taskType}
+                      onChange={handleAiFormChange}
+                      style={inputStyle}
+                    >
+                      <option value="LISTING_DESCRIPTION">Listing Description</option>
+                      <option value="BUYER_FOLLOW_UP">Buyer Follow-Up</option>
+                      <option value="SELLER_UPDATE">Seller Update</option>
+                      <option value="SOCIAL_CAPTION">Social Caption</option>
+                      <option value="OPEN_HOUSE_PROMO">Open House Promo</option>
+                      <option value="SHOWING_FEEDBACK_SUMMARY">
+                        Showing Feedback Summary
+                      </option>
+                      <option value="PRICE_REDUCTION_CONVERSATION">
+                        Price Reduction Conversation
+                      </option>
+                      <option value="UNDER_CONTRACT_UPDATE">
+                        Under Contract Update
+                      </option>
+                    </select>
 
-              <textarea
-                name="context"
-                value={aiAssistantForm.context}
-                onChange={handleAiFormChange}
-                rows="6"
-                style={textAreaStyle}
-                placeholder="Add details about the property, client situation, objections, goals, urgency, upgrades, neighborhood, financing concerns, feedback, or anything else the draft should reflect."
-              />
+                    <select
+                      name="audience"
+                      value={aiAssistantForm.audience}
+                      onChange={handleAiFormChange}
+                      style={inputStyle}
+                    >
+                      <option value="Buyer">Buyer</option>
+                      <option value="Seller">Seller</option>
+                      <option value="Investor">Investor</option>
+                      <option value="General Audience">General Audience</option>
+                      <option value="Past Client">Past Client</option>
+                    </select>
+
+                    <select
+                      name="tone"
+                      value={aiAssistantForm.tone}
+                      onChange={handleAiFormChange}
+                      style={inputStyle}
+                    >
+                      <option value="Professional">Professional</option>
+                      <option value="Warm">Warm</option>
+                      <option value="Confident">Confident</option>
+                      <option value="Friendly">Friendly</option>
+                      <option value="Direct">Direct</option>
+                      <option value="Luxury">Luxury</option>
+                      <option value="Educational">Educational</option>
+                    </select>
+
+                    <input
+                      name="propertyAddress"
+                      value={aiAssistantForm.propertyAddress}
+                      onChange={handleAiFormChange}
+                      placeholder="Property Address"
+                      style={inputStyle}
+                    />
+
+                    <input
+                      name="cityState"
+                      value={aiAssistantForm.cityState}
+                      onChange={handleAiFormChange}
+                      placeholder="City, State"
+                      style={inputStyle}
+                    />
+
+                    <input
+                      name="pricePoint"
+                      value={aiAssistantForm.pricePoint}
+                      onChange={handleAiFormChange}
+                      placeholder="Price Point"
+                      style={inputStyle}
+                    />
+
+                    <input
+                      name="bedsBaths"
+                      value={aiAssistantForm.bedsBaths}
+                      onChange={handleAiFormChange}
+                      placeholder="Beds / Baths / Sq Ft"
+                      style={inputStyle}
+                    />
+
+                    <input
+                      name="propertyType"
+                      value={aiAssistantForm.propertyType}
+                      onChange={handleAiFormChange}
+                      placeholder="Property Type"
+                      style={inputStyle}
+                    />
+
+                    <input
+                      name="transactionStage"
+                      value={aiAssistantForm.transactionStage}
+                      onChange={handleAiFormChange}
+                      placeholder="Transaction Stage"
+                      style={inputStyle}
+                    />
+
+                    <input
+                      name="callToAction"
+                      value={aiAssistantForm.callToAction}
+                      onChange={handleAiFormChange}
+                      placeholder="Desired Call to Action"
+                      style={inputStyle}
+                    />
+                  </div>
+
+                  <textarea
+                    name="context"
+                    value={aiAssistantForm.context}
+                    onChange={handleAiFormChange}
+                    rows="6"
+                    style={textAreaStyle}
+                    placeholder="Add details about the property, client situation, objections, goals, urgency, upgrades, neighborhood, financing concerns, feedback, or anything else the draft should reflect."
+                  />
+                </>
+              )}
 
               <div style={actionButtonRowStyle}>
                 <button
@@ -1455,7 +1536,9 @@ ${presentationForm.notes || ""}
                   style={primaryButtonStyle}
                   onClick={generateAiDraft}
                 >
-                  Generate Draft
+                  {aiAssistantForm.taskType === "WORKWEEK_BUILDER"
+                    ? "Generate 7-Day Plan"
+                    : "Generate Draft"}
                 </button>
 
                 <button
@@ -1496,7 +1579,11 @@ ${presentationForm.notes || ""}
                 onChange={(e) => setAiOutput(e.target.value)}
                 rows="14"
                 style={textAreaStyle}
-                placeholder="Your AI-generated draft will appear here..."
+                placeholder={
+                  aiAssistantForm.taskType === "WORKWEEK_BUILDER"
+                    ? "Your AI-generated 7-day time-blocked plan will appear here..."
+                    : "Your AI-generated draft will appear here..."
+                }
               />
 
               {showSavedAiDrafts && (
@@ -1515,7 +1602,7 @@ ${presentationForm.notes || ""}
                             <div style={savedSummaryRowStyle}>
                               <div>
                                 <div><strong>Task:</strong> {draft.taskType}</div>
-                                <div><strong>Property:</strong> {draft.propertyAddress || "N/A"}</div>
+                                <div><strong>Property:</strong> {draft.propertyAddress || draft.agentName || "N/A"}</div>
                               </div>
 
                               <button
@@ -1632,6 +1719,163 @@ function ResultRow({ label, value, bold = false }) {
       </span>
     </div>
   );
+}
+
+function FloatingLabelInput({ label, value, name, onChange, type = "text" }) {
+  const isFilled = String(value ?? "").length > 0;
+
+  return (
+    <div style={floatingFieldStyle}>
+      <input
+        type={type}
+        name={name}
+        value={value}
+        onChange={onChange}
+        placeholder=" "
+        style={floatingInputStyle}
+      />
+      <label
+        style={{
+          ...floatingLabelStyle,
+          ...(isFilled ? floatingLabelActiveStyle : {}),
+        }}
+      >
+        {label}
+      </label>
+    </div>
+  );
+}
+
+function getDefaultAiForm() {
+  return {
+    taskType: "LISTING_DESCRIPTION",
+    audience: "Buyer",
+    tone: "Professional",
+    propertyAddress: "",
+    cityState: "",
+    pricePoint: "",
+    bedsBaths: "",
+    propertyType: "",
+    transactionStage: "",
+    callToAction: "",
+    context: "",
+    agentName: "",
+    areasOfFocus: "",
+    weeklyGoals: "",
+    outcomeProjection: "",
+    workStartTime: "8:00 AM",
+    workEndTime: "5:00 PM",
+    appointments: "",
+    priorityTasks: "",
+    daysToPlan: "7",
+  };
+}
+
+function buildSevenDayPlan({
+  agentName,
+  areasOfFocus,
+  weeklyGoals,
+  outcomeProjection,
+  workStartTime,
+  workEndTime,
+  appointments,
+  priorityTasks,
+  callToAction,
+  context,
+  daysToPlan,
+}) {
+  const totalDays = Math.max(1, Math.min(Number(daysToPlan) || 7, 7));
+  const focusLine = areasOfFocus || "lead generation, follow-up, client care, admin, and content";
+  const goalsLine = weeklyGoals || "book appointments, move active clients forward, and stay consistent";
+  const outcomeLine =
+    outcomeProjection || "steady pipeline growth, stronger follow-up, and improved weekly productivity";
+  const start = workStartTime || "8:00 AM";
+  const end = workEndTime || "5:00 PM";
+  const priorities = priorityTasks || "prospecting, follow-up, listing support, and admin cleanup";
+  const appointmentsLine = appointments || "No fixed appointments entered.";
+  const plannerContext =
+    context ||
+    "Keep the plan realistic, focused, and built around high-value agent work.";
+
+  const dayNames = [
+    "Day 1",
+    "Day 2",
+    "Day 3",
+    "Day 4",
+    "Day 5",
+    "Day 6",
+    "Day 7",
+  ];
+
+  const dailyThemes = [
+    "Pipeline setup and prospecting",
+    "Follow-up and appointments",
+    "Marketing and nurture",
+    "Client conversion and admin",
+    "Listing support and negotiations",
+    "Relationship building and content",
+    "Review, reset, and next-week planning",
+  ];
+
+  const blocks = [
+    `${start} - Lead generation block`,
+    `Mid-morning - Client follow-up and text/email responses`,
+    `Late morning - Database cleanup, lead notes, CRM updates`,
+    `Early afternoon - Content, social, listing promotion, or buyer outreach`,
+    `Mid-afternoon - Showings, consultations, calls, or deal-related work`,
+    `${end} wrap-up - Recap wins, update pipeline, prep tomorrow`,
+  ];
+
+  let output = `AI Workweek Builder
+
+Agent: ${agentName || "Agent"}
+Planning Window: ${totalDays} Day${totalDays > 1 ? "s" : ""}
+Focus Areas: ${focusLine}
+Weekly Goals: ${goalsLine}
+Outcome Projection: ${outcomeLine}
+Workday Range: ${start} to ${end}
+Priority Tasks: ${priorities}
+Fixed Appointments / Commitments: ${appointmentsLine}
+
+Planner Notes:
+${plannerContext}
+
+`;
+
+  for (let i = 0; i < totalDays; i += 1) {
+    output += `${dayNames[i]} - ${dailyThemes[i]}
+
+1. ${blocks[0]}
+   - Primary focus: ${focusLine}
+
+2. ${blocks[1]}
+   - Move warm leads, respond to active clients, and confirm next steps.
+
+3. ${blocks[2]}
+   - Clean up loose ends tied to ${priorities}.
+
+4. ${blocks[3]}
+   - Build visibility and support weekly goals with intentional outreach or content.
+
+5. ${blocks[4]}
+   - Prioritize revenue-producing work, appointments, and decision-moving conversations.
+
+6. ${blocks[5]}
+   - Review what worked, log follow-ups, and set tomorrow's top 3.
+
+`;
+  }
+
+  output += `Weekly Outcome Projection
+
+- Stronger consistency across prospecting and follow-up
+- Better control of time and fewer reactive days
+- Increased movement toward: ${outcomeLine}
+
+Closing Direction
+${callToAction || "Follow the plan, adjust as live business changes, and review progress daily."}`;
+
+  return output;
 }
 
 function formatCurrency(value) {
@@ -2153,6 +2397,41 @@ const savedDetailSectionStyle = {
   borderTop: "1px solid #e2e8f0",
   display: "grid",
   gap: "6px",
+};
+
+const floatingFieldStyle = {
+  position: "relative",
+  width: "100%",
+};
+
+const floatingInputStyle = {
+  width: "100%",
+  padding: "18px 14px 10px",
+  borderRadius: "10px",
+  border: "1px solid #d1d5db",
+  fontSize: "14px",
+  boxSizing: "border-box",
+  background: "#ffffff",
+};
+
+const floatingLabelStyle = {
+  position: "absolute",
+  left: "12px",
+  top: "50%",
+  transform: "translateY(-50%)",
+  color: "#9ca3af",
+  fontSize: "14px",
+  background: "#ffffff",
+  padding: "0 4px",
+  pointerEvents: "none",
+  transition: "all 0.2s ease",
+};
+
+const floatingLabelActiveStyle = {
+  top: "0",
+  transform: "translateY(-50%)",
+  fontSize: "12px",
+  color: "#6b7280",
 };
 
 const loadingStyle = {

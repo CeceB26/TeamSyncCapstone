@@ -5,8 +5,12 @@ import AdminDashboard from "./pages/AdminDashboard";
 import UserDashboard from "./pages/UserDashboard";
 import "./index.css";
 
+function getLoggedInUser() {
+  return JSON.parse(localStorage.getItem("loggedInUser") || "null");
+}
+
 function ProtectedUserRoute({ children }) {
-  const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser") || "null");
+  const loggedInUser = getLoggedInUser();
 
   if (!loggedInUser) {
     return <Navigate to="/login" replace />;
@@ -16,7 +20,7 @@ function ProtectedUserRoute({ children }) {
 }
 
 function ProtectedAdminRoute({ children }) {
-  const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser") || "null");
+  const loggedInUser = getLoggedInUser();
 
   if (!loggedInUser) {
     return <Navigate to="/login" replace />;

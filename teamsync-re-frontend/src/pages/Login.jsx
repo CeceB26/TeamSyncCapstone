@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 function Login() {
@@ -11,16 +11,6 @@ function Login() {
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser") || "null");
-
-    if (loggedInUser?.role === "ADMIN") {
-      navigate("/admin", { replace: true });
-    } else if (loggedInUser?.role === "USER") {
-      navigate("/user", { replace: true });
-    }
-  }, [navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -139,7 +129,7 @@ function Login() {
               onClick={() => handleDemoLogin("admin@test.com", "Test123!")}
               disabled={loading}
             >
-              Login as Admin
+              Admin Demo Dashboard
             </button>
 
             <button
@@ -148,7 +138,7 @@ function Login() {
               onClick={() => handleDemoLogin("user@test.com", "Test123!")}
               disabled={loading}
             >
-              Login as User
+              User Demo Dashboard
             </button>
           </div>
         </div>
